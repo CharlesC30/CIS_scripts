@@ -3,15 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal
 import scipy.ndimage
-import h5py
-import cv2
-import os
 
+# modified version of Xingyu's CCL-2D.py to return threshold and
+# not alter input image
 
-'''for 8 bit image'''
-def cut_pin_2d(img):
+def ccl_threshold(img):
 
-    v_n = img
+    v_n = img.copy()
 
     v_n_orig = v_n.copy()
 
@@ -53,37 +51,4 @@ def cut_pin_2d(img):
     
     t = np.argmin(label_n[lower_limit:upper_limit]) + lower_limit
 
-    print(t)
-
-    v_n[v_n_orig > t] = 1
-
-    v_n[v_n_orig <= t] = 0
-
-    v_n = np.array(v_n, dtype="bool")
-
-    return v_n
-
-
-
-
-# Volumen_corrected_path = '/zhome/liuxu/Ground_truth_volume_data/'
-
-# volumen = 'R002323-Porsche_Stator_03_full_50W_x_roll.hdf5'
-
-# volumen_path1 = Volumen_corrected_path+volumen
-
-# f = h5py.File(volumen_path1)
-
-# slice_n = 128
-
-# v_n = np.array(f['Volume'][slice_n, :, :])
-os.chdir("/lhome/clarkcs/Cu-pins")
-v_n = np.load("slice30.npy")
-v_n[v_n<0] = 0
-
-cv2.normalize(v_n, v_n, 0, 256, cv2.NORM_MINMAX)
-
-
-output = cut_pin_2d(v_n)
-plt.imshow(output)
-plt.show()
+    return t
