@@ -40,25 +40,32 @@ slice_ranges = {
 def read_dataid(filename):
     return int(filename[1:7])
 
+# this dict is the final output you want
+# filenames are the keys with pin center positions as the values
+pin_centers = {}
 
 for filename in os.listdir():
     if ".hdf5" in filename:
         dataid = read_dataid(filename)
         with h5py.File(filename) as file:
 
+            r = slice_ranges[dataid]
+            mid_index = (min(r) + max(r)) // 2
+            print(mid_index)
+            mid_image = np.array(file["Volume"][mid_index])
+            cv2.normalize(mid_image, mid_image, 0, 256, cv2.NORM_MINMAX)
+            
+            thresh = ccl_threshold(mid_image)
+            binary_image = mid_image >= thresh
+            
+            labels = cc3d.connected_components(binary_image)
+            dusted_labels = cc3d.dust(labels, threshold=100)
+            regionprops = measure.regionprops(dusted_labels)
+            
             for i in slice_ranges[dataid]:
                 print(filename, i)
                 image = np.array(file["Volume"][i])
-                cv2.normalize(image, image, 0, 256, cv2.NORM_MINMAX)
-
-                thresh = ccl_threshold(image)
-                binary_image = image >= thresh
-
-                labels = cc3d.connected_components(binary_image)
-                dusted_labels = cc3d.dust(labels, threshold=100)
-
                 plt.imshow(image)
-                regionprops = measure.regionprops(dusted_labels)
                 for rp in regionprops:
                     c = rp.centroid
                     rect = patches.Rectangle((c[1]-64, c[0]-64), 128, 128, edgecolor="r", facecolor="none")
@@ -66,32 +73,6 @@ for filename in os.listdir():
                     ax.add_patch(rect)
                 
                 plt.show()
-
-# for filename in os.listdir():
-#     if ".hdf5" in filename:
-#         dataid = read_dataid(filename)
-#         with h5py.File(filename) as file:
-
-#             for i in slice_ranges[dataid]:
-#                 print(filename, i)
-#                 image = np.array(file["Volume"][i])
-#                 cv2.normalize(image, image, 0, 256, cv2.NORM_MINMAX)
-
-#                 thresh = ccl_threshold(image)
-#                 binary_image = image >= thresh
-
-#                 labels = cc3d.connected_components(binary_image)
-#                 dusted_labels = cc3d.dust(labels, threshold=100)
-
-#                 plt.imshow(image)
-#                 regionprops = measure.regionprops(dusted_labels)
-#                 for rp in regionprops:
-#                     c = rp.centroid
-#                     rect = patches.Rectangle((c[1]-64, c[0]-64), 128, 128, edgecolor="r", facecolor="none")
-#                     ax = plt.gca()
-#                     ax.add_patch(rect)
-                
-#                 plt.show()
 
 
 
