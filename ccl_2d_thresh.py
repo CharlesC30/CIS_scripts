@@ -33,15 +33,15 @@ def ccl_threshold(img):
 
     label_n = np.array(label_n)
     
-    # plt.plot(thre, label_n)
-    # plt.show()
+    plt.plot(thre, label_n)
+    plt.show()
     
     hist, bin_edges = np.histogram(v_n_orig, bins=100)
 
     peaks, _ = scipy.signal.find_peaks(hist, width=3, prominence=50)
     
-    # plt.plot(hist)
-    # plt.show()
+    plt.plot(hist)
+    plt.show()
 
     gray_level =np.array([(bin_edges[i]+bin_edges[i+1])/2 for i in range(len(bin_edges)-1)])
     

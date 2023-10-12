@@ -1,24 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from twopass_ccl import twopass_ccl
+from ccl_2d_thresh import ccl_threshold
+import cc3d
 from skimage import filters
 
 image = np.load("/lhome/clarkcs/Cu-pins/high_quality/slice100.npy")
+binary_image = np.load("/lhome/clarkcs/Cu-pins/high_quality/slice100_thresh.npy")
 pin_centers = np.load("hq_Cu_pin_centers.npy")
 
 print(pin_centers)
 
+sobel_image = filters.sobel(image)
+sobel_thresh = ccl_threshold(sobel_image)
+
 for center in pin_centers:
     roi_x = int(center[1])
     roi_y = int(center[0])
-    pin_roi = image[roi_y-100: roi_y+100, roi_x-100: roi_x+100]
+    pin_roi = image[roi_y-128: roi_y+128, roi_x-128: roi_x+128]
+    binary_pin_roi = binary_image[roi_y-128: roi_y+128, roi_x-128: roi_x+128]
 
-    pin_roi_thresh = filters.threshold_otsu(pin_roi)
-    binary_pin_roi = pin_roi <= pin_roi_thresh
-
-    sobel_roi = filters.sobel(pin_roi)
-    sobel_thresh = filters.threshold_otsu(sobel_roi)
-    binary_sobel_roi = sobel_roi <= sobel_thresh
+    sobel_roi = sobel_image[roi_y-128: roi_y+128, roi_x-128: roi_x+128]
+    binary_sobel_roi = sobel_roi >= sobel_thresh
 
     # labeled_roi = twopass_ccl(pin_roi, foreground=1)
 
