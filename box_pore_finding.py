@@ -1,18 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from twopass_ccl import twopass_ccl
 from ccl_2d_thresh import ccl_threshold
+import scipy
 import cc3d
 import cv2
 from skimage import filters
 
+def hist_threshold(img):
+    hist, bin_edges = np.histogram(img, bins=256)
+    peaks, _ = scipy.signal.find_peaks(hist, prominence=50)
+    thresh = peaks[0] + np.argmin(hist[peaks[0]: peaks[-1]])
+    return thresh
+
 image = np.load("/lhome/clarkcs/Cu-pins/high_quality/slice100.npy")
 cv2.normalize(image, image, 0, 256, cv2.NORM_MINMAX)
-binary_image = np.load("/lhome/clarkcs/Cu-pins/high_quality/slice100_thresh.npy")
+# binary_image = np.load("/lhome/clarkcs/Cu-pins/high_quality/slice100_thresh.npy")
 pin_centers = np.load("hq_Cu_pin_centers.npy")
 
-# sobel_image = filters.sobel(image)
-# sobel_thresh = ccl_threshold(sobel_image)
+thresh = filters.threshold_triangle(image)
+print(thresh)
+binary_image = image >= thresh
 
 for center in pin_centers:
     roi_x = int(center[1])
