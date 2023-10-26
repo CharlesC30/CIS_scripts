@@ -10,7 +10,7 @@ prev_n_labels = 0
 prev_binary_image = np.empty(image.shape)
 for thresh in range(0, 256):
     binary_image = image <= thresh
-    labels, n_labels = measure.label(binary_image, return_num=True)
+    labels, n_labels = measure.label(binary_image, return_num=True, connectivity=1)
 
     ccl_count.append(n_labels)
 
