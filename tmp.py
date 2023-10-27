@@ -5,7 +5,6 @@ import scipy.signal
 import scipy.ndimage
 import h5py
 import cv2
-import os
 
 
 '''for 8 bit image'''
@@ -17,7 +16,7 @@ def cut_pin_2d(img):
 
     label_n = []
 
-    thre = range(0, 65536)
+    thre = range(0, 256)
 
     for t in thre:
         
@@ -35,15 +34,15 @@ def cut_pin_2d(img):
 
     label_n = np.array(label_n)
     
-    # plt.plot(thre, label_n)
-    # plt.show()
+    plt.plot(thre, label_n)
+    plt.show()
     
-    hist, bin_edges = np.histogram(v_n_orig, bins=100)
+    hist, bin_edges = np.histogram(v_n_orig, bins=256)
 
     peaks, _ = scipy.signal.find_peaks(hist, width=3, prominence=50)
     
-    # plt.plot(hist)
-    # plt.show()
+    plt.plot(hist)
+    plt.show()
 
     gray_level =np.array([(bin_edges[i]+bin_edges[i+1])/2 for i in range(len(bin_edges)-1)])
     
@@ -52,8 +51,6 @@ def cut_pin_2d(img):
     upper_limit = np.ceil(gray_level[np.max(peaks)]).astype(np.int64)
     
     t = np.argmin(label_n[lower_limit:upper_limit]) + lower_limit
-
-    print(t)
 
     v_n[v_n_orig > t] = 1
 
@@ -77,14 +74,10 @@ def cut_pin_2d(img):
 # slice_n = 128
 
 # v_n = np.array(f['Volume'][slice_n, :, :])
-os.chdir("/lhome/clarkcs/Cu-pins/pin-pore-examples")
-v_n = np.load("ict_pin_pore.npy")
+v_n = np.load("/lhome/clarkcs/Cu-pins/pin-pore-examples/ict_pin_pore.npy")
 v_n[v_n<0] = 0
 
-cv2.normalize(v_n, v_n, 0, 65536, cv2.NORM_MINMAX)
-plt.imshow(v_n)
-plt.show()
+cv2.normalize(v_n, v_n, 0, 256, cv2.NORM_MINMAX)
+
 
 output = cut_pin_2d(v_n)
-plt.imshow(output)
-plt.show()

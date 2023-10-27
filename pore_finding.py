@@ -43,8 +43,8 @@ def find_pores(image):
 
 image = np.load("/lhome/clarkcs/Cu-pins/high_quality/slice100.npy")
 cv2.normalize(image, image, 0, 256, cv2.NORM_MINMAX)
-# thresh = ccl_threshold(image)
-# print(thresh)
+thresh = ccl_threshold(image)
+print(thresh)
 thresh = 142
 image = image >= thresh
 pin_centers = np.load("hq_Cu_pin_centers.npy")
