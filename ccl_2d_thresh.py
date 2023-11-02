@@ -52,6 +52,8 @@ def ccl_threshold(img, plot_results=False):
     lower_limit = np.argmax(label_n)
     
     upper_limit = np.ceil(gray_level[np.max(peaks)]).astype(np.int64)
+
+    print(lower_limit, upper_limit)
     
     t = np.argmin(label_n[lower_limit:upper_limit]) + lower_limit
 

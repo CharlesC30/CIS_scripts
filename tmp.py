@@ -37,7 +37,7 @@ def cut_pin_2d(img):
     plt.plot(thre, label_n)
     plt.show()
     
-    hist, bin_edges = np.histogram(v_n_orig, bins=256)
+    hist, bin_edges = np.histogram(v_n_orig, bins=1000)
 
     peaks, _ = scipy.signal.find_peaks(hist, width=3, prominence=50)
     
@@ -49,6 +49,8 @@ def cut_pin_2d(img):
     lower_limit = np.argmax(label_n)
     
     upper_limit = np.ceil(gray_level[np.max(peaks)]).astype(np.int64)
+
+    print(lower_limit, upper_limit)
     
     t = np.argmin(label_n[lower_limit:upper_limit]) + lower_limit
 
@@ -63,21 +65,26 @@ def cut_pin_2d(img):
 
 
 
-# Volumen_corrected_path = '/zhome/liuxu/Ground_truth_volume_data/'
+Volumen_corrected_path = '/lhome/clarkcs/Cu-pins/from_Xingyu/Samples/'
 
-# volumen = 'R002323-Porsche_Stator_03_full_50W_x_roll.hdf5'
+volumen = 'R002770-RWTH_Hairpins_Group_03_n01t.hdf5'
 
-# volumen_path1 = Volumen_corrected_path+volumen
+volumen_path1 = Volumen_corrected_path+volumen
 
-# f = h5py.File(volumen_path1)
+f = h5py.File(volumen_path1)
 
-# slice_n = 128
+slice_n = 260
 
-# v_n = np.array(f['Volume'][slice_n, :, :])
-v_n = np.load("/lhome/clarkcs/Cu-pins/pin-pore-examples/ict_pin_pore.npy")
+v_n = np.array(f['Volume'][slice_n, :, :])
+# v_n = np.load("/lhome/clarkcs/Cu-pins/pin-pore-examples/ict_pin_pore.npy")
+plt.imshow(v_n)
+plt.show()
 v_n[v_n<0] = 0
 
 cv2.normalize(v_n, v_n, 0, 256, cv2.NORM_MINMAX)
 
 
 output = cut_pin_2d(v_n)
+plt.imshow(output)
+plt.show()
+
