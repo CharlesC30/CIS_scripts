@@ -3,7 +3,6 @@ from skimage import measure
 import matplotlib.pyplot as plt
 import cv2
 
-
 from myplots import draw_bbox
 from imgutils import load_and_normalize
 import derivatives as drv
@@ -42,7 +41,7 @@ def try_all_thresholds(image):
 
     pore_candidates = []
     
-    for thresh in range(0, max_val, 5):
+    for thresh in range(0, max_val, 1):
         print(thresh)
         binary_image = image >= thresh
         
@@ -65,23 +64,33 @@ def try_all_thresholds(image):
                     draw_bbox(w_bbox, ax2, "orange")
                 else:
                     draw_bbox(w_bbox, ax2, "red")
-        for existing_candidate in pore_candidates:
-            if existing_candidate.exists:
-                still_exists, new_bbox_idx = check_any_inside(existing_candidate.get_current_bbox(), new_candidate_bboxs, return_indices=True)
+        for candidate in pore_candidates:
+            if candidate.exists:
+                still_exists, new_bbox_idx = check_any_inside(candidate.get_current_bbox(), 
+                                                              new_candidate_bboxs, 
+                                                              return_indices=True)
                 assert len(new_bbox_idx) <= 1, "multiple new candidates inside existing pore"
                 if still_exists:
                     new_bbox = new_candidate_bboxs.pop(new_bbox_idx[0])
-                    existing_candidate.update_bbox(thresh, new_bbox)
+                    candidate.update_bbox(thresh, new_bbox)
                 else:
-                    existing_candidate.end()
+                    candidate.end()
         for bbox in new_candidate_bboxs:
             pc = PoreCandidate(t0=thresh, bbox0=bbox)
             pore_candidates.append(pc)
 
         for b_bbox in black_bboxs:
             draw_bbox(b_bbox, ax2, "green")
-        plt.show()
+        # plt.show()
+        fig.savefig(f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding/thresh_{thresh}")
         plt.close(fig)
+
+    # plot the lifetimes of each "pore"
+    fig, ax = plt.subplots()
+    ax.set_xlim(0, max_val)
+    for i, pc in pore_candidates:
+        ax.barh(i, width=(pc.max_threshold - pc.min_threshold), left=pc.min_threshold)
+    plt.show()
 
 
 if __name__ == "__main__":

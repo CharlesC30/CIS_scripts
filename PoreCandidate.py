@@ -12,7 +12,14 @@ class PoreCandidate:
     def get_current_bbox(self):
         current_bbox = list(self.bboxs.values())[-1]
         return current_bbox
-
+    
     def end(self):
         self.exists = False
 
+    @property
+    def min_threshold(self):
+        return list(self.bboxs.keys())[0]
+    
+    @property
+    def max_threshold(self):
+        return list(self.bboxs.keys())[-1]
