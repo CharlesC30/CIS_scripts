@@ -35,6 +35,10 @@ def check_any_inside(target_bbox, other_bboxs, return_indices=False):
         return np.any(in_boundaries)
 
 
+def calc_bbox_area(bbox):
+    return abs((bbox[2] - bbox[0]) * (bbox[3] - bbox[1]))
+
+
 def try_all_thresholds(image):
     # loop over all possible thresholds for image
     max_val = int(np.ceil(image.max()))
@@ -66,12 +70,13 @@ def try_all_thresholds(image):
                     draw_bbox(w_bbox, ax2, "red")
         for candidate in pore_candidates:
             if candidate.exists:
-                still_exists, new_bbox_idx = check_any_inside(candidate.get_current_bbox(), 
-                                                              new_candidate_bboxs, 
-                                                              return_indices=True)
-                assert len(new_bbox_idx) <= 1, "multiple new candidates inside existing pore"
+                still_exists, contained_bbox_idxs = check_any_inside(candidate.get_current_bbox(), 
+                                                                     new_candidate_bboxs, 
+                                                                     return_indices=True)
+                # contained_areas = {idx: calc_bbox_area(new_candidate_bboxs[idx]) for idx in contained_bbox_idxs}
                 if still_exists:
-                    new_bbox = new_candidate_bboxs.pop(new_bbox_idx[0])
+                    new_bbox_idx = max(contained_bbox_idxs, key=lambda idx: calc_bbox_area(new_candidate_bboxs[idx]))
+                    new_bbox = new_candidate_bboxs.pop(new_bbox_idx)
                     candidate.update_bbox(thresh, new_bbox)
                 else:
                     candidate.end()
@@ -82,13 +87,16 @@ def try_all_thresholds(image):
         for b_bbox in black_bboxs:
             draw_bbox(b_bbox, ax2, "green")
         # plt.show()
-        fig.savefig(f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding/thresh_{thresh}")
+        # fig.savefig(f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding/thresh_{thresh:0{4}}", dpi=300)
         plt.close(fig)
 
     # plot the lifetimes of each "pore"
     fig, ax = plt.subplots()
-    ax.set_xlim(0, max_val)
-    for i, pc in pore_candidates:
+    ax.set_xlim(0, 150)
+    print(len(pore_candidates))
+    pore_lifetimes = [(pc.max_threshold - pc.min_threshold) for pc in pore_candidates]
+    print(pore_lifetimes)
+    for i, pc in enumerate(pore_candidates):
         ax.barh(i, width=(pc.max_threshold - pc.min_threshold), left=pc.min_threshold)
     plt.show()
 

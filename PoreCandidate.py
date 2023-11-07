@@ -1,7 +1,7 @@
 from collections import OrderedDict
 
 class PoreCandidate:
-    def __init__(self, t0, bbox0):
+    def __init__(self, t0: int, bbox0: tuple[int]):
         self.exists = True
         self.bboxs = OrderedDict()
         self.bboxs[t0] = bbox0
