@@ -1,7 +1,7 @@
 import numpy as np
 from skimage import measure
 import matplotlib.pyplot as plt
-import cv2
+import os
 
 from myplots import draw_bbox
 from imgutils import load_and_normalize
@@ -73,7 +73,6 @@ def try_all_thresholds(image):
                 still_exists, contained_bbox_idxs = check_any_inside(candidate.get_current_bbox(), 
                                                                      new_candidate_bboxs, 
                                                                      return_indices=True)
-                # contained_areas = {idx: calc_bbox_area(new_candidate_bboxs[idx]) for idx in contained_bbox_idxs}
                 if still_exists:
                     new_bbox_idx = max(contained_bbox_idxs, key=lambda idx: calc_bbox_area(new_candidate_bboxs[idx]))
                     new_bbox = new_candidate_bboxs.pop(new_bbox_idx)
@@ -87,22 +86,34 @@ def try_all_thresholds(image):
         for b_bbox in black_bboxs:
             draw_bbox(b_bbox, ax2, "green")
         # plt.show()
-        # fig.savefig(f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding/thresh_{thresh:0{4}}", dpi=300)
+        fig.suptitle(f"threshold={thresh}")
+        if not os.path.exists("thresh_images"):
+            os.mkdir("thresh_images")
+        fig.savefig(f"thresh_images/thresh_{thresh:0{4}}", dpi=200)
         plt.close(fig)
 
     # plot the lifetimes of each "pore"
     fig, ax = plt.subplots()
-    ax.set_xlim(0, 150)
-    print(len(pore_candidates))
-    pore_lifetimes = [(pc.max_threshold - pc.min_threshold) for pc in pore_candidates]
-    print(pore_lifetimes)
+    max_thresh = max((pc.max_threshold for pc in pore_candidates))
+    ax.set_xlim(0, max_thresh + 5)
+    ax.set_xticks(np.arange(0, max_thresh+5, 5))
     for i, pc in enumerate(pore_candidates):
         ax.barh(i, width=(pc.max_threshold - pc.min_threshold), left=pc.min_threshold)
+    ax.grid(True, axis='x')
+    ax.set_xlabel("threshold")
+    fig.savefig("pore_lifetimes")
     plt.show()
 
 
 if __name__ == "__main__":
-    image = load_and_normalize("ict_pin_pore.npy", 8)
-    sobel_image = drv.full_sobel(image)
-    try_all_thresholds(sobel_image)
+    for i, image_path in enumerate(os.listdir("pin_pore_data")):
+        print(image_path)
+        image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
+        derivative_image = drv.imderiv(image, mode="center")
+        save_plots_path = f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding_center_deriv_{i}"
+        if not os.path.exists(save_plots_path):
+            os.mkdir(save_plots_path)
+        os.chdir(save_plots_path)
+        try_all_thresholds(derivative_image)
+        os.chdir("/zhome/clarkcs/scripts")
 
