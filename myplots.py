@@ -9,10 +9,10 @@ def plot_images_and_hist(*images, bins=1000):
         ax[1].hist(im.ravel(), bins=bins)
     plt.show()
 
-def draw_bbox(bbox, ax, color):
+def draw_bbox(bbox, ax, color, **kwargs):
     min_y, min_x, max_y, max_x = bbox
     width = max_x - min_x
     height = max_y - min_y
-    rect = patches.Rectangle((min_x - 0.5, min_y - 0.5), width, height, edgecolor=color, facecolor="none", linewidth=2)
+    rect = patches.Rectangle((min_x - 0.5, min_y - 0.5), width, height, edgecolor=color, facecolor="none", **kwargs)
     ax.add_patch(rect)
 
