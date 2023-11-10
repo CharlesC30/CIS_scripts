@@ -61,13 +61,13 @@ def try_all_thresholds(image):
         new_candidate_bboxs = []
         for w_bbox, w_bbox_area in zip(white_bboxs, white_bbox_areas):
             if w_bbox_area == largest_white_area:
-                draw_bbox(w_bbox, ax2, "yellow", **{"linewidth": 0.5})
+                draw_bbox(w_bbox, ax2, "yellow", **{"linewidth": 1})
             else:
                 if check_any_inside(w_bbox, black_bboxs):
                     new_candidate_bboxs.append(w_bbox) 
-                    draw_bbox(w_bbox, ax2, "orange", **{"linewidth": 0.5})
+                    draw_bbox(w_bbox, ax2, "orange", **{"linewidth": 1})
                 else:
-                    draw_bbox(w_bbox, ax2, "red", **{"linewidth": 0.5})
+                    draw_bbox(w_bbox, ax2, "red", **{"linewidth": 1})
         for candidate in pore_candidates:
             if candidate.exists:
                 still_exists, contained_bbox_idxs = check_any_inside(candidate.get_current_bbox(), 
@@ -109,14 +109,15 @@ if __name__ == "__main__":
     for i, image_path in enumerate(os.listdir("pin_pore_data")):
         print(image_path)
         image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
-        # derivative_image = drv.imderiv(image, mode="forward")
-        derivative_image = drv.full_sobel(image)
-        save_plots_path = f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding_sobel_{i}"
-        if not os.path.exists(save_plots_path):
-            os.mkdir(save_plots_path)
-        os.chdir(save_plots_path)
-        try_all_thresholds(derivative_image)
-        os.chdir("/zhome/clarkcs/scripts")
+        plt.imshow(image)
+        plt.savefig(f"/home/clarkcs/Pictures/pore_detection/bbox_pore_finding_sobel_{image_path}/normalized_grayscale")
+        # derivative_image = drv.full_sobel(image)
+        # save_plots_path = f"/home/clarkcs/Pictures/pore_detection/bbox_pore_finding_sobel_{image_path}"
+        # if not os.path.exists(save_plots_path):
+        #     os.mkdir(save_plots_path)
+        # os.chdir(save_plots_path)
+        # try_all_thresholds(derivative_image)
+        # os.chdir("/home/clarkcs/scripts/CIS_scripts")
     # image_path = "one-pin-pore-near-edge.npy"
     # print(image_path)
     # image = load_and_normalize(f"pin_pore_data/{image_path}", 8)

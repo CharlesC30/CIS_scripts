@@ -40,7 +40,11 @@ def smear_object_to_boundary(image, contour_coords, axis="both"):
     return smeared_image
 
 if __name__ == "__main__":
+    plt.gray()
     image = load_and_normalize("pin_pore_data/one-pin-multipore-near-edge.npy", 8)
+    plt.imshow(image)
+    plt.show()
+
     thresh0 = skimage.filters.threshold_otsu(image)
     binary_image = image >= thresh0
     contours, _ = cv2.findContours(binary_image.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)

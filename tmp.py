@@ -1,90 +1,34 @@
-import cc3d
-import numpy as np
-import matplotlib.pyplot as plt
-import scipy.signal
-import scipy.ndimage
-import h5py
 import cv2
+import numpy as np
+from matplotlib import pyplot as plt
 
+# Read the image (replace 'your_image.jpg' with your actual image file)
+# image = cv2.imread('pin_pore_data/one-pin-pore.npy', cv2.IMREAD_GRAYSCALE)
+image = np.load("pin_pore_data/one-pin-pore.npy")
+# Apply binary thresholding to create a binary mask
+_, binary_mask = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
 
-'''for 8 bit image'''
-def cut_pin_2d(img):
+# Create a kernel for dilation
+kernel_size = 5
+kernel = np.ones((kernel_size, kernel_size), np.uint8)
 
-    v_n = img
+# Dilate the binary mask
+dilated_mask = cv2.dilate(binary_mask, kernel, iterations=1)
 
-    v_n_orig = v_n.copy()
+# Invert the binary mask to keep the original image within the outer edges
+inverted_mask = cv2.bitwise_not(binary_mask)
 
-    label_n = []
+# Bitwise AND the original image with the inverted mask to keep only the outer edges
+result = cv2.bitwise_and(image, image, mask=inverted_mask)
 
-    thre = range(0, 256)
+# Bitwise OR the result with the dilated mask to add the dilated outer edges
+result_with_dilated_edges = cv2.bitwise_or(result, dilated_mask)
 
-    for t in thre:
-        
-        v_n[v_n_orig > t] = 1
-        
-        v_n[v_n_orig <= t] = 0
-        
-        v_n = np.array(v_n,dtype="bool")
-        
-        labels_out, N = cc3d.connected_components(v_n, return_N=True)
-        
-        label_n.append(N)
+# Display the original image, dilated outer edges, and the final result
+plt.figure(figsize=(10, 5))
 
-    thre = np.array(thre)
+plt.subplot(131), plt.imshow(image, cmap='gray'), plt.title('Original Image')
+plt.subplot(132), plt.imshow(dilated_mask, cmap='gray'), plt.title('Dilated Mask')
+plt.subplot(133), plt.imshow(result_with_dilated_edges, cmap='gray'), plt.title('Result with Dilated Outer Edges')
 
-    label_n = np.array(label_n)
-    
-    plt.plot(thre, label_n)
-    plt.show()
-    
-    hist, bin_edges = np.histogram(v_n_orig, bins=1000)
-
-    peaks, _ = scipy.signal.find_peaks(hist, width=3, prominence=50)
-    
-    plt.plot(hist)
-    plt.show()
-
-    gray_level =np.array([(bin_edges[i]+bin_edges[i+1])/2 for i in range(len(bin_edges)-1)])
-    
-    lower_limit = np.argmax(label_n)
-    
-    upper_limit = np.ceil(gray_level[np.max(peaks)]).astype(np.int64)
-
-    print(lower_limit, upper_limit)
-    
-    t = np.argmin(label_n[lower_limit:upper_limit]) + lower_limit
-
-    v_n[v_n_orig > t] = 1
-
-    v_n[v_n_orig <= t] = 0
-
-    v_n = np.array(v_n, dtype="bool")
-
-    return v_n
-
-
-
-
-Volumen_corrected_path = '/lhome/clarkcs/Cu-pins/from_Xingyu/Samples/'
-
-volumen = 'R002770-RWTH_Hairpins_Group_03_n01t.hdf5'
-
-volumen_path1 = Volumen_corrected_path+volumen
-
-f = h5py.File(volumen_path1)
-
-slice_n = 260
-
-v_n = np.array(f['Volume'][slice_n, :, :])
-# v_n = np.load("/lhome/clarkcs/Cu-pins/pin-pore-examples/ict_pin_pore.npy")
-plt.imshow(v_n)
 plt.show()
-v_n[v_n<0] = 0
-
-cv2.normalize(v_n, v_n, 0, 256, cv2.NORM_MINMAX)
-
-
-output = cut_pin_2d(v_n)
-plt.imshow(output)
-plt.show()
-
