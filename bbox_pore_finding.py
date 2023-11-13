@@ -7,6 +7,7 @@ from myplots import draw_bbox
 from imgutils import load_and_normalize
 import derivatives as drv
 from PoreCandidate import PoreCandidate
+from smear_edges import smear_object_to_boundary, set_edge_to_max, find_edge_coords
 
 def binary_regionprops(image, connectivity=None):
     white_labels = measure.label(image, connectivity=connectivity)
@@ -39,7 +40,7 @@ def calc_bbox_area(bbox):
     return abs((bbox[2] - bbox[0]) * (bbox[3] - bbox[1]))
 
 
-def try_all_thresholds(image):
+def try_all_thresholds(image: np.ndarray, save_plots=False, ignore_largest_bbox=True) -> list[PoreCandidate]:
     # loop over all possible thresholds for image
     max_val = int(np.ceil(image.max()))
 
@@ -60,7 +61,7 @@ def try_all_thresholds(image):
 
         new_candidate_bboxs = []
         for w_bbox, w_bbox_area in zip(white_bboxs, white_bbox_areas):
-            if w_bbox_area == largest_white_area:
+            if w_bbox_area == largest_white_area and ignore_largest_bbox:
                 draw_bbox(w_bbox, ax2, "yellow", **{"linewidth": 1})
             else:
                 if check_any_inside(w_bbox, black_bboxs):
@@ -85,48 +86,75 @@ def try_all_thresholds(image):
 
         for b_bbox in black_bboxs:
             draw_bbox(b_bbox, ax2, "green")
-        # plt.show()
-        fig.suptitle(f"threshold={thresh}")
-        if not os.path.exists("thresh_images"):
-            os.mkdir("thresh_images")
-        fig.savefig(f"thresh_images/thresh_{thresh:0{4}}", dpi=200)
+
+        if save_plots:
+            fig.suptitle(f"threshold={thresh}")
+            if not os.path.exists("thresh_images"):
+                os.mkdir("thresh_images")
+            fig.savefig(f"thresh_images/thresh_{thresh:0{4}}", dpi=200)
         plt.close(fig)
 
     # plot the lifetimes of each "pore"
-    fig, ax = plt.subplots()
-    max_thresh = max((pc.max_threshold for pc in pore_candidates))
-    ax.set_xlim(0, max_thresh + 10)
-    ax.set_xticks(np.arange(0, max_thresh+10, 10))
-    for i, pc in enumerate(pore_candidates):
-        ax.barh(i, width=(pc.max_threshold - pc.min_threshold), left=pc.min_threshold)
-    ax.grid(True, axis='x')
-    ax.set_xlabel("threshold")
-    fig.savefig("pore_lifetimes")
-    # plt.show()
+    if save_plots:
+        fig, ax = plt.subplots()
+        max_thresh = max((pc.max_threshold for pc in pore_candidates))
+        ax.set_xlim(0, max_thresh + 10)
+        ax.set_xticks(np.arange(0, max_thresh+10, 10))
+        for i, pc in enumerate(pore_candidates):
+            ax.barh(i, width=(pc.max_threshold - pc.min_threshold), left=pc.min_threshold)
+        ax.grid(True, axis='x')
+        ax.set_xlabel("threshold")
+        fig.savefig("pore_lifetimes")
+        plt.close(fig)
+    return pore_candidates
+
+
+def check_bbox_histogram(image, bbox):
+    bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    ax1.imshow(image)
+    draw_bbox(bbox, ax1, "orange")
+    ax2.imshow(bbox_roi)
+    ax3.hist(np.ravel(bbox_roi))
+    plt.show()
 
 
 if __name__ == "__main__":
+
     for i, image_path in enumerate(os.listdir("pin_pore_data")):
         print(image_path)
         image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
-        plt.imshow(image)
-        plt.savefig(f"/home/clarkcs/Pictures/pore_detection/bbox_pore_finding_sobel_{image_path}/normalized_grayscale")
-        # derivative_image = drv.full_sobel(image)
-        # save_plots_path = f"/home/clarkcs/Pictures/pore_detection/bbox_pore_finding_sobel_{image_path}"
+        # cntrs0 = find_edge_coords(image)
+        # image = set_edge_to_max(image, cntrs0)
+        # image = smear_object_to_boundary(image, cntrs0, "x")
+        # cntrs1 = find_edge_coords(image)
+        # image = smear_object_to_boundary(image, cntrs1, "y")
+        derivative_image = drv.full_sobel(image)
+        # save_plots_path = f"/zhome/clarkcs/Pictures/pore_detection/remove_obj_boundary/bbox_pore_finding_sobel_{image_path}"
         # if not os.path.exists(save_plots_path):
         #     os.mkdir(save_plots_path)
         # os.chdir(save_plots_path)
-        # try_all_thresholds(derivative_image)
-        # os.chdir("/home/clarkcs/scripts/CIS_scripts")
-    # image_path = "one-pin-pore-near-edge.npy"
+        pore_candidates = try_all_thresholds(derivative_image, save_plots=False, ignore_largest_bbox=True)
+        for j, pc in enumerate(pore_candidates):
+            bbox = pc.get_current_bbox()
+            bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
+            np.save(f"pore_candidates/{image_path[:-4]}_{j}", bbox_roi)
+            # check_bbox_histogram(image, bbox)
+        os.chdir("/zhome/clarkcs/scripts")
+    # image_path = "one-pin-multipore-near-edge.npy"
     # print(image_path)
     # image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
+    # contour_coords0 = find_edge_coords(image)
+    # image = set_edge_to_max(image, contour_coords0)
+    # image = smear_object_to_boundary(image, contour_coords0, "x")
+    # contour_coords1 = find_edge_coords(image)
+    # image = smear_object_to_boundary(image, contour_coords1, "y")
     # # derivative_image = drv.imderiv(image, mode="forward")
     # derivative_image = drv.full_sobel(image)
-    # save_plots_path = f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding_sobel_5"
+    # save_plots_path = f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding_sobel_remove_objboundary"
     # if not os.path.exists(save_plots_path):
     #     os.mkdir(save_plots_path)
     # os.chdir(save_plots_path)
-    # try_all_thresholds(derivative_image)
+    # try_all_thresholds(derivative_image, save_plots=True, ignore_largest_bbox=False)
     # os.chdir("/zhome/clarkcs/scripts")
 

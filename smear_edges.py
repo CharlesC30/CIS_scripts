@@ -6,6 +6,36 @@ import derivatives as drv
 
 from imgutils import load_and_normalize
 
+# def set_edge_to_max(image, edge_coords, window_size=5):
+#     modified_image = image.copy()
+#     if window_size % 2 != 1:
+#         raise ValueError("window size must be odd")
+#     window_step = window_size // 2
+#     for x, y in edge_coords:
+#         image_window = image[y-window_step: y+window_step+1, x-window_step: x+window_step+1]
+#         window_max = np.max(image_window)
+#         modified_image[y, x] = window_max
+#     return modified_image
+
+def set_edge_to_max(image, edge_coords, window_size=5):
+    modified_image = image.copy()
+    if window_size % 2 != 1:
+        raise ValueError("window size must be odd")
+    window_step = window_size // 2
+    for x, y in edge_coords:
+        image_window = image[y-window_step: y+window_step+1, x-window_step: x+window_step+1]
+        window_max = np.max(image_window)
+        modified_image[y-window_step: y+window_step+1, x-window_step: x+window_step+1] = window_max
+    return modified_image
+
+
+def find_edge_coords(image):
+    thresh = skimage.filters.threshold_otsu(image)
+    binary_image = image >= thresh
+    contours, _ = cv2.findContours(binary_image.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    return np.squeeze(contours)
+
+
 def smear_object_to_boundary(image, contour_coords, axis="both"):
     # idea iterate over the boundary pixels of the image and look "inwards"
     # when you find the appropriate pixel along object contour set all the pixels
@@ -45,10 +75,10 @@ if __name__ == "__main__":
     plt.imshow(image)
     plt.show()
 
-    thresh0 = skimage.filters.threshold_otsu(image)
-    binary_image = image >= thresh0
-    contours, _ = cv2.findContours(binary_image.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    cntrs = np.squeeze(contours)
+    cntrs = find_edge_coords(image)
+    image = set_edge_to_max(image, cntrs)
+    plt.imshow(image)
+    plt.show()
     smeared1 = smear_object_to_boundary(image, cntrs, axis='x')
 
     thresh1 = skimage.filters.threshold_otsu(smeared1)
