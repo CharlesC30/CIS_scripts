@@ -36,6 +36,16 @@ def check_any_inside(target_bbox, other_bboxs, return_indices=False):
         return np.any(in_boundaries)
 
 
+def remove_material_boundary(image):
+    modified_image = image.copy()
+    cntrs0 = find_edge_coords(modified_image)
+    modified_image = set_edge_to_max(modified_image, cntrs0)
+    modified_image = smear_object_to_boundary(modified_image, cntrs0, "x")
+    cntrs1 = find_edge_coords(modified_image)
+    modified_image = smear_object_to_boundary(modified_image, cntrs1, "y")
+    return modified_image
+
+
 def calc_bbox_area(bbox):
     return abs((bbox[2] - bbox[0]) * (bbox[3] - bbox[1]))
 
@@ -124,11 +134,6 @@ if __name__ == "__main__":
     for i, image_path in enumerate(os.listdir("pin_pore_data")):
         print(image_path)
         image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
-        # cntrs0 = find_edge_coords(image)
-        # image = set_edge_to_max(image, cntrs0)
-        # image = smear_object_to_boundary(image, cntrs0, "x")
-        # cntrs1 = find_edge_coords(image)
-        # image = smear_object_to_boundary(image, cntrs1, "y")
         derivative_image = drv.full_sobel(image)
         # save_plots_path = f"/zhome/clarkcs/Pictures/pore_detection/remove_obj_boundary/bbox_pore_finding_sobel_{image_path}"
         # if not os.path.exists(save_plots_path):
@@ -138,23 +143,21 @@ if __name__ == "__main__":
         for j, pc in enumerate(pore_candidates):
             bbox = pc.get_current_bbox()
             bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
-            np.save(f"pore_candidates/{image_path[:-4]}_{j}", bbox_roi)
+            for thresh in range(int(bbox_roi.min()), int(bbox_roi.max() + 1)):
+                fig, (ax1, ax2) = plt.subplots(1, 2)
+                ax1.imshow(image)
+                draw_bbox(bbox, ax1, "orange")
+                binary_bbox_roi = bbox_roi >= thresh
+                ax2.imshow(binary_bbox_roi)
+                plt.show()
+            # np.save(f"pore_candidates/{image_path[:-4]}_{j}", bbox_roi)
             # check_bbox_histogram(image, bbox)
+            # centroid = measure.centroid(bbox_roi)
+            # fig, (ax1, ax2) = plt.subplots(1, 2)
+            # ax1.imshow(image)
+            # draw_bbox(bbox, ax1, "orange")
+            # ax2.imshow(bbox_roi)
+            # ax2.scatter(centroid[1], centroid[0], c="r")
+            # plt.show()
         os.chdir("/zhome/clarkcs/scripts")
-    # image_path = "one-pin-multipore-near-edge.npy"
-    # print(image_path)
-    # image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
-    # contour_coords0 = find_edge_coords(image)
-    # image = set_edge_to_max(image, contour_coords0)
-    # image = smear_object_to_boundary(image, contour_coords0, "x")
-    # contour_coords1 = find_edge_coords(image)
-    # image = smear_object_to_boundary(image, contour_coords1, "y")
-    # # derivative_image = drv.imderiv(image, mode="forward")
-    # derivative_image = drv.full_sobel(image)
-    # save_plots_path = f"/zhome/clarkcs/Pictures/pore_detection/bbox_pore_finding_sobel_remove_objboundary"
-    # if not os.path.exists(save_plots_path):
-    #     os.mkdir(save_plots_path)
-    # os.chdir(save_plots_path)
-    # try_all_thresholds(derivative_image, save_plots=True, ignore_largest_bbox=False)
-    # os.chdir("/zhome/clarkcs/scripts")
 
