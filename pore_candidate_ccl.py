@@ -17,7 +17,7 @@ if __name__ == "__main__":
         with open(f"pcs_maxthresh_bbox/{data_name}_pcs.json") as pc_file:
             pore_candidates = json.load(pc_file)
 
-        data_path = f"/home/clarkcs/Pictures/pore_candidate_ccl_10bit/{data_name}"
+        data_path = f"/zhome/clarkcs/Pictures/pore_candidate_ccl_10bit/{data_name}"
         if not os.path.exists(data_path):
             os.makedirs(data_path)
         os.chdir(data_path)
