@@ -2,6 +2,7 @@ import numpy as np
 from skimage import measure
 import matplotlib.pyplot as plt
 import os
+import json
 
 from myplots import draw_bbox
 from imgutils import load_and_normalize
@@ -140,16 +141,18 @@ if __name__ == "__main__":
         #     os.mkdir(save_plots_path)
         # os.chdir(save_plots_path)
         pore_candidates = try_all_thresholds(derivative_image, save_plots=False, ignore_largest_bbox=True)
-        for j, pc in enumerate(pore_candidates):
-            bbox = pc.get_current_bbox()
-            bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
-            for thresh in range(int(bbox_roi.min()), int(bbox_roi.max() + 1)):
-                fig, (ax1, ax2) = plt.subplots(1, 2)
-                ax1.imshow(image)
-                draw_bbox(bbox, ax1, "orange")
-                binary_bbox_roi = bbox_roi >= thresh
-                ax2.imshow(binary_bbox_roi)
-                plt.show()
+        with open(f"pcs_maxthresh_bbox/{image_path[:-4]}_pcs.json", "w") as file:
+            json.dump([(pc.max_threshold, pc.get_current_bbox()) for pc in pore_candidates], file)
+        # for j, pc in enumerate(pore_candidates):
+        #     bbox = pc.get_current_bbox()
+        #     bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
+        #     for thresh in range(int(bbox_roi.min()), int(bbox_roi.max() + 1)):
+        #         fig, (ax1, ax2) = plt.subplots(1, 2)
+        #         ax1.imshow(image)
+        #         draw_bbox(bbox, ax1, "orange")
+        #         binary_bbox_roi = bbox_roi >= thresh
+        #         ax2.imshow(binary_bbox_roi)
+        #         plt.show()
             # np.save(f"pore_candidates/{image_path[:-4]}_{j}", bbox_roi)
             # check_bbox_histogram(image, bbox)
             # centroid = measure.centroid(bbox_roi)
