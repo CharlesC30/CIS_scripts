@@ -13,7 +13,7 @@ if __name__ == "__main__":
     for filename in os.listdir("pin_pore_data"):
         os.chdir("/zhome/clarkcs/scripts")
         data_name = Path(filename).stem
-        image = load_and_normalize(f"pin_pore_data/{filename}", 10)
+        image = load_and_normalize(f"pin_pore_data/{filename}", 8)
         with open(f"pcs_maxthresh_bbox/{data_name}_pcs.json") as pc_file:
             pore_candidates = json.load(pc_file)
 
