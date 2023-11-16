@@ -13,13 +13,14 @@ if __name__ == "__main__":
     for filename in os.listdir("pin_pore_data"):
         os.chdir("/zhome/clarkcs/scripts")
         data_name = Path(filename).stem
-        image = load_and_normalize(f"pin_pore_data/{filename}", 8)
+        image = load_and_normalize(f"pin_pore_data/{filename}", 10)
         with open(f"pcs_maxthresh_bbox/{data_name}_pcs.json") as pc_file:
             pore_candidates = json.load(pc_file)
 
-        if not os.path.exists(f"/zhome/clarkcs/Pictures/pore_candidate_ccl/{data_name}"):
-            os.makedirs(f"/zhome/clarkcs/Pictures/pore_candidate_ccl/{data_name}")
-        os.chdir(f"/zhome/clarkcs/Pictures/pore_candidate_ccl/{data_name}")
+        data_path = f"/home/clarkcs/Pictures/pore_candidate_ccl_10bit/{data_name}"
+        if not os.path.exists(data_path):
+            os.makedirs(data_path)
+        os.chdir(data_path)
 
         for i, (_, bbox) in enumerate(pore_candidates):
             if not os.path.exists(f"pore_candidate_{i}"):
