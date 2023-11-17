@@ -42,10 +42,10 @@ if __name__ == "__main__":
             draw_bbox(bbox, ax1, "orange")
             ax2.imshow(binary_bbox_roi, cmap="gray")
             fig.suptitle(f"average circularity = {avg_circularity}")
-            if avg_circularity >= 0.75:
-                plt.savefig(f"/home/clarkcs/Pictures/pore_circularities/true_pores/{data_name}_{i}")
+            if avg_circularity >= 0.80:
+                plt.savefig(f"/zhome/clarkcs/Pictures/pore_circularities/true_pores/{data_name}_{i}")
             else:
-                plt.savefig(f"/home/clarkcs/Pictures/pore_circularities/false_pores/{data_name}_{i}")
+                plt.savefig(f"/zhome/clarkcs/Pictures/pore_circularities/false_pores/{data_name}_{i}")
             plt.close(fig)
         plt.plot(avg_circularities, "o")
         plt.show()
