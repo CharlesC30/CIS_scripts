@@ -17,6 +17,11 @@ from imgutils import load_and_normalize
 #         modified_image[y, x] = window_max
 #     return modified_image
 
+def calc_average_along_contour(image, contour_coords):
+    contour_vals = [image[y, x] for x ,y  in contour_coords]
+    return sum(contour_vals) / len(contour_vals)
+
+
 def set_edge_to_max(image, edge_coords, window_size=5):
     modified_image = image.copy()
     if window_size % 2 != 1:
@@ -43,7 +48,7 @@ def smear_object_to_boundary(image, contour_coords, axis="both"):
 
     smeared_image = image.copy()
     if axis == "both" or axis == "y":
-        # iterate over rows of image
+        # iterate over columns of image
         for i in range(image.shape[0]):
             coords_at_row = contour_coords[contour_coords[:, 0] == i]
             if len(coords_at_row) > 0: 
@@ -55,7 +60,7 @@ def smear_object_to_boundary(image, contour_coords, axis="both"):
                 smeared_image[0: left_contour_end, i] = left_contour_val
                 smeared_image[right_contour_end:, i] = right_contour_val
     if axis == "both" or axis == "x":
-        # iterate over columns
+        # iterate over rows
         for j in range(image.shape[1]):
             coords_at_col = contour_coords[contour_coords[:, 1] == j]
             if len(coords_at_col) > 0: 
@@ -69,6 +74,21 @@ def smear_object_to_boundary(image, contour_coords, axis="both"):
         
     return smeared_image
 
+def bucket_fill_outside(image, contour_coords, fill_value):
+    filled_image = image.copy()
+    for i in range(image.shape[0]):
+        coords_at_row = contour_coords[contour_coords[:, 0] == i]
+        if len(coords_at_row) > 0: 
+            left_contour_end = np.min(coords_at_row[:, 1])
+            right_contour_end = np.max(coords_at_row[:, 1])
+            filled_image[0: left_contour_end, i] = fill_value
+            filled_image[right_contour_end:, i] = fill_value
+        else:
+            filled_image[:, i] = fill_value
+        
+    return filled_image
+
+
 if __name__ == "__main__":
     plt.gray()
     image = load_and_normalize("pin_pore_data/one-pin-multipore-near-edge.npy", 8)
@@ -76,20 +96,34 @@ if __name__ == "__main__":
     plt.show()
 
     cntrs = find_edge_coords(image)
-    image = set_edge_to_max(image, cntrs)
-    plt.imshow(image)
-    plt.show()
-    smeared1 = smear_object_to_boundary(image, cntrs, axis='x')
-
-    thresh1 = skimage.filters.threshold_otsu(smeared1)
-    binary_smeared1 = smeared1 >= thresh1
-    contours, _ = cv2.findContours(binary_smeared1.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    cntrs = np.squeeze(contours)
-    smeared = smear_object_to_boundary(smeared1, cntrs, axis='y')
-
-    plt.imshow(smeared)
+    expanded_image = set_edge_to_max(image, cntrs)
+    plt.imshow(expanded_image)
     plt.show()
 
-    drv_image = drv.full_sobel(smeared)
-    plt.imshow(drv_image)
+    new_cntrs = find_edge_coords(expanded_image)
+    cntr_avg = calc_average_along_contour(expanded_image, new_cntrs)
+    expanded_filled = bucket_fill_outside(expanded_image, new_cntrs, cntr_avg)
+    plt.imshow(expanded_filled)
     plt.show()
+
+    derivative_image = drv.full_sobel(expanded_image)
+    plt.imshow(derivative_image)
+    plt.show()
+
+    # image = set_edge_to_max(image, cntrs)
+    # plt.imshow(image)
+    # plt.show()
+    # smeared1 = smear_object_to_boundary(image, cntrs, axis='x')
+
+    # thresh1 = skimage.filters.threshold_otsu(smeared1)
+    # binary_smeared1 = smeared1 >= thresh1
+    # contours, _ = cv2.findContours(binary_smeared1.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    # cntrs = np.squeeze(contours)
+    # smeared = smear_object_to_boundary(smeared1, cntrs, axis='y')
+
+    # plt.imshow(smeared)
+    # plt.show()
+
+    # drv_image = drv.full_sobel(smeared)
+    # plt.imshow(drv_image)
+    # plt.show()
