@@ -9,9 +9,12 @@ class PoreCandidate:
     def update_bbox(self, t, bbox):
         self.bboxs[t] = bbox
 
-    def get_current_bbox(self):
-        current_bbox = list(self.bboxs.values())[-1]
-        return current_bbox
+    def get_current_outer_bbox(self):
+        current_outer_bbox = list(self.bboxs.values())[-1]["outer"]
+        return current_outer_bbox
+    
+    def get_current_bboxs(self):
+        return list(self.bboxs.values())[-1]
     
     def end(self):
         self.exists = False

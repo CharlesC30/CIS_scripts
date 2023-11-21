@@ -75,18 +75,20 @@ def try_all_thresholds(image: np.ndarray, save_plots=False, ignore_largest_bbox=
             if w_bbox_area == largest_white_area and ignore_largest_bbox:
                 draw_bbox(w_bbox, ax2, "yellow", **{"linewidth": 1})
             else:
-                if check_any_inside(w_bbox, black_bboxs):
-                    new_candidate_bboxs.append(w_bbox) 
+                any_inside, inside_bbox_idxs = check_any_inside(w_bbox, black_bboxs, return_indices=True)
+                if any_inside:
+                    inside_bboxs = [black_bboxs[idx] for idx in inside_bbox_idxs]
+                    new_candidate_bboxs.append({"outer": w_bbox, "inner": inside_bboxs}) 
                     draw_bbox(w_bbox, ax2, "orange", **{"linewidth": 1})
                 else:
                     draw_bbox(w_bbox, ax2, "red", **{"linewidth": 1})
         for candidate in pore_candidates:
             if candidate.exists:
-                still_exists, contained_bbox_idxs = check_any_inside(candidate.get_current_bbox(), 
-                                                                     new_candidate_bboxs, 
+                still_exists, contained_bbox_idxs = check_any_inside(candidate.get_current_outer_bbox(), 
+                                                                     [ncb["outer"] for ncb in new_candidate_bboxs], 
                                                                      return_indices=True)
                 if still_exists:
-                    new_bbox_idx = max(contained_bbox_idxs, key=lambda idx: calc_bbox_area(new_candidate_bboxs[idx]))
+                    new_bbox_idx = max(contained_bbox_idxs, key=lambda idx: calc_bbox_area(new_candidate_bboxs[idx]["outer"]))
                     new_bbox = new_candidate_bboxs.pop(new_bbox_idx)
                     candidate.update_bbox(thresh, new_bbox)
                 else:
@@ -136,31 +138,9 @@ if __name__ == "__main__":
         print(image_path)
         image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
         derivative_image = drv.full_sobel(image)
-        # save_plots_path = f"/zhome/clarkcs/Pictures/pore_detection/remove_obj_boundary/bbox_pore_finding_sobel_{image_path}"
-        # if not os.path.exists(save_plots_path):
-        #     os.mkdir(save_plots_path)
-        # os.chdir(save_plots_path)
         pore_candidates = try_all_thresholds(derivative_image, save_plots=False, ignore_largest_bbox=True)
-        with open(f"pcs_maxthresh_bbox/{image_path[:-4]}_pcs.json", "w") as file:
-            json.dump([(pc.max_threshold, pc.get_current_bbox()) for pc in pore_candidates], file)
-        # for j, pc in enumerate(pore_candidates):
-        #     bbox = pc.get_current_bbox()
-        #     bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
-        #     for thresh in range(int(bbox_roi.min()), int(bbox_roi.max() + 1)):
-        #         fig, (ax1, ax2) = plt.subplots(1, 2)
-        #         ax1.imshow(image)
-        #         draw_bbox(bbox, ax1, "orange")
-        #         binary_bbox_roi = bbox_roi >= thresh
-        #         ax2.imshow(binary_bbox_roi)
-        #         plt.show()
-            # np.save(f"pore_candidates/{image_path[:-4]}_{j}", bbox_roi)
-            # check_bbox_histogram(image, bbox)
-            # centroid = measure.centroid(bbox_roi)
-            # fig, (ax1, ax2) = plt.subplots(1, 2)
-            # ax1.imshow(image)
-            # draw_bbox(bbox, ax1, "orange")
-            # ax2.imshow(bbox_roi)
-            # ax2.scatter(centroid[1], centroid[0], c="r")
-            # plt.show()
+        os.chdir("/zhome/clarkcs/scripts/pcs_inner_outer_bboxs")
+        with open(f"{image_path[:-4]}_pcs.json", "w") as file:
+            json.dump([(pc.max_threshold, pc.get_current_bboxs()) for pc in pore_candidates], file)
         os.chdir("/zhome/clarkcs/scripts")
 
