@@ -104,7 +104,7 @@ def try_all_thresholds(image: np.ndarray, save_plots=False, ignore_largest_bbox=
             fig.suptitle(f"threshold={thresh}")
             if not os.path.exists("thresh_images"):
                 os.mkdir("thresh_images")
-            fig.savefig(f"thresh_images/thresh_{thresh:0{4}}", dpi=200)
+            fig.savefig(f"thresh_images/thresh_{thresh:0{9}}", dpi=200)
         plt.close(fig)
 
     # plot the lifetimes of each "pore"
@@ -136,11 +136,16 @@ if __name__ == "__main__":
 
     for i, image_path in enumerate(os.listdir("pin_pore_data")):
         print(image_path)
-        image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
+        data_name = image_path[:-4]
+        image = load_and_normalize(f"pin_pore_data/{image_path}", 16)
         derivative_image = drv.full_sobel(image)
-        pore_candidates = try_all_thresholds(derivative_image, save_plots=False, ignore_largest_bbox=True)
-        os.chdir("/zhome/clarkcs/scripts/pcs_inner_outer_bboxs")
-        with open(f"{image_path[:-4]}_pcs.json", "w") as file:
+        os.chdir("/lhome/clarkcs/pore_detection_16bit")
+        if not os.path.exists(f"{data_name}"):
+            os.mkdir(f"{data_name}")
+        os.chdir(f"{data_name}")
+        pore_candidates = try_all_thresholds(derivative_image, save_plots=True, ignore_largest_bbox=True)
+        os.chdir("/zhome/clarkcs/scripts/pcs_inner_outer_bboxs_16bit")
+        with open(f"{data_name}_pcs_16bit.json", "w") as file:
             json.dump([(pc.max_threshold, pc.get_current_bboxs()) for pc in pore_candidates], file)
         os.chdir("/zhome/clarkcs/scripts")
 

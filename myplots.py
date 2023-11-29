@@ -16,3 +16,12 @@ def draw_bbox(bbox, ax, color, **kwargs):
     rect = patches.Rectangle((min_x - 0.5, min_y - 0.5), width, height, edgecolor=color, facecolor="none", **kwargs)
     ax.add_patch(rect)
 
+
+def y_profile(image, y, image_ax, profile_ax, line_color="red"):
+    profile_vals = image[y, :]
+    image_ax.imshow(image)
+    image_ax.axhline(y=y, color=line_color)
+    profile_ax.plot(profile_vals)
+    return profile_vals
+
+

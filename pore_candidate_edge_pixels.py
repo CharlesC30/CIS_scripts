@@ -28,9 +28,11 @@ def find_half_thresh(image):
             break
     return thresh
 
+
 def any_black_boundary(image):
     boundary_vals = np.concatenate([image[:, 0], image[:, -1], image[0, :], image[-1, :]])
     return np.any(1 - boundary_vals)
+
 
 def extend_bbox(bbox, binary_bbox_roi, image_shape):
     top_row = binary_bbox_roi[0, :]
@@ -60,13 +62,13 @@ if __name__ == "__main__":
         with open(f"pcs_maxthresh_bbox/{data_name}_pcs.json", "r") as file:
             pore_candidates = json.load(file)
 
-        os.chdir("/zhome/clarkcs/Pictures/extending_bbox_check_edges_50-50-thresh")
+        os.chdir("/zhome/clarkcs/Pictures/extending_bbox_check_edges_mid-thresh")
         # if not os.path.exists(f"{data_name}"):
         #     os.mkdir(f"{data_name}")
         for i, (_, bbox) in enumerate(pore_candidates):
             bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
-            bbox_thresh = find_half_thresh(bbox_roi)
-            # bbox_thresh = (bbox_roi.max() - bbox_roi.min()) / 4 + bbox_roi.min()
+            # bbox_thresh = find_half_thresh(bbox_roi)
+            bbox_thresh = (bbox_roi.max() - bbox_roi.min()) / 2 + bbox_roi.min()
             # bbox_thresh = bbox_roi.min() + 1
             binary_roi = bbox_roi >= bbox_thresh
             fig, (ax1, ax2) = plt.subplots(1, 2)
