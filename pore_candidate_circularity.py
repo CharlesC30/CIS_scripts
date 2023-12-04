@@ -9,7 +9,7 @@ from imgutils import load_and_normalize
 from myplots import draw_bbox
 
 def calculate_circularity(contour):
-    # Calculate circularity using the formula
+    # Calculate circularity using the formula (4 * pi * area) / perimeter**2
     area = cv2.contourArea(contour)
     perimeter = cv2.arcLength(contour, True)
     if perimeter == 0:

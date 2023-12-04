@@ -47,6 +47,40 @@ def remove_material_boundary(image):
     return modified_image
 
 
+def draw_black_and_white_bboxs(image, ax, bbox_kwargs={}):
+    ax.imshow(image, cmap="gray")
+    ax.set_xticks([]), ax.set_yticks([])
+    white_rps, black_rps = binary_regionprops(image)
+    white_bboxs = [wrp.bbox for wrp in white_rps]
+    black_bboxs = [brp.bbox for brp in black_rps]
+    for w_bbox in white_bboxs:
+        draw_bbox(w_bbox, ax, "red", **bbox_kwargs)
+    for b_bbox in black_bboxs:
+        draw_bbox(b_bbox, ax, "green", **bbox_kwargs)
+
+
+def thresh_triplot(image, tmin, tmax):
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+    bin_image_min = (image >= tmin).astype(np.uint8)
+    bin_image_max = (image >= tmax).astype(np.uint8)
+    bin_image_max_plus_one = (image >= (tmax+1)).astype(np.uint8)
+    ax1.imshow(bin_image_min)
+    ax1.set_xticks([]), ax1.set_yticks([])
+    draw_black_and_white_bboxs(bin_image_min, ax1, bbox_kwargs={"linewidth": 2})
+    ax1.set_title(f"threshold={tmin}")
+
+    ax2.imshow(bin_image_max)
+    ax2.set_xticks([]), ax2.set_yticks([])
+    draw_black_and_white_bboxs(bin_image_max, ax2, bbox_kwargs={"linewidth": 2})
+    ax2.set_title(f"threshold={tmax}")
+
+    ax3.imshow(bin_image_max_plus_one)
+    ax3.set_xticks([]), ax3.set_yticks([])
+    draw_black_and_white_bboxs(bin_image_max_plus_one, ax3, bbox_kwargs={"linewidth": 2})
+    ax3.set_title(f"threshold={tmax+1}")
+    plt.show()
+
+
 def calc_bbox_area(bbox):
     return abs((bbox[2] - bbox[0]) * (bbox[3] - bbox[1]))
 
