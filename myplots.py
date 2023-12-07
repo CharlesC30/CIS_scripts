@@ -21,6 +21,7 @@ def y_profile(image, y, image_ax, profile_ax, line_color="red"):
     profile_vals = image[y, :]
     image_ax.imshow(image)
     image_ax.axhline(y=y, color=line_color)
+    image_ax.set_xticks([]), image_ax.set_yticks([])
     profile_ax.plot(profile_vals)
     return profile_vals
 

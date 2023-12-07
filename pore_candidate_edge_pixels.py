@@ -55,6 +55,8 @@ def extend_bbox(bbox, binary_bbox_roi, image_shape):
 
 
 if __name__ == "__main__":
+    true_pore_thresh_bbox = {}
+
     for image_path in os.listdir("pin_pore_data"):
         print(image_path)
         data_name = image_path[:-4]
@@ -62,20 +64,24 @@ if __name__ == "__main__":
         with open(f"pcs_maxthresh_bbox/{data_name}_pcs.json", "r") as file:
             pore_candidates = json.load(file)
 
-        os.chdir("/zhome/clarkcs/Pictures/extending_bbox_check_edges_mid-thresh")
+        true_pore_thresh_bbox[data_name] = []
+
+        os.chdir("/zhome/clarkcs/Pictures/extending_bbox_check_edges_50-50_no_ticks")
         # if not os.path.exists(f"{data_name}"):
         #     os.mkdir(f"{data_name}")
         for i, (_, bbox) in enumerate(pore_candidates):
             bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
-            # bbox_thresh = find_half_thresh(bbox_roi)
-            bbox_thresh = (bbox_roi.max() - bbox_roi.min()) / 2 + bbox_roi.min()
+            bbox_thresh = find_half_thresh(bbox_roi)
+            # bbox_thresh = (bbox_roi.max() - bbox_roi.min()) / 2 + bbox_roi.min()
             # bbox_thresh = bbox_roi.min() + 1
             binary_roi = bbox_roi >= bbox_thresh
             fig, (ax1, ax2) = plt.subplots(1, 2)
             ax1.imshow(image, cmap="gray")
-            draw_bbox(bbox, ax1, "orange")
+            draw_bbox(bbox, ax1, "orange", **{"linewidth": 2})
 
             ax2.imshow(binary_roi, cmap="gray")
+            ax1.set_xticks([]), ax1.set_yticks([])
+            ax2.set_xticks([]), ax2.set_yticks([])
             if any_black_boundary(binary_roi):
                 new_bbox = extend_bbox(bbox, binary_roi, image.shape)
                 new_bbox_roi = image[new_bbox[0]: new_bbox[2], new_bbox[1]: new_bbox[3]]
@@ -83,12 +89,19 @@ if __name__ == "__main__":
                 print(new_bbox)
                 ax2.clear()
                 ax2.imshow(new_binary_roi, cmap="gray")
+                ax2.set_xticks([]), ax2.set_yticks([])
                 largest_component = find_largest_connected_component(1 - new_binary_roi.astype(np.uint8))
                 if any_black_boundary(1 - largest_component):
-                    plt.savefig(f"false_pores/{data_name}_pore_candidate_{i}.png")
+                    # plt.savefig(f"false_pores/{data_name}_pore_candidate_{i}.png")
+                    pass
                 else:
-                    plt.savefig(f"true_pores/{data_name}_pore_candidate_{i}.png")
+                    # plt.savefig(f"true_pores/{data_name}_pore_candidate_{i}.png")
+                    true_pore_thresh_bbox[data_name].append((bbox_thresh, new_bbox))
             else:
-                plt.savefig(f"true_pores/{data_name}_pore_candidate_{i}.png")
+                # plt.savefig(f"true_pores/{data_name}_pore_candidate_{i}.png")
+                true_pore_thresh_bbox[data_name].append((bbox_thresh, bbox))
             plt.close(fig)
         os.chdir("/zhome/clarkcs/scripts")
+
+    with open("true_pore_candidate_50-50-thresh_plus_extbbox", "w") as file:
+        json.dump(true_pore_thresh_bbox, file)
