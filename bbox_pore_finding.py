@@ -168,18 +168,18 @@ def check_bbox_histogram(image, bbox):
 
 if __name__ == "__main__":
 
-    for i, image_path in enumerate(os.listdir("pin_pore_data")):
+    for i, image_path in enumerate(os.listdir("pin_pore_data_sparse")):
         print(image_path)
         data_name = image_path[:-4]
-        image = load_and_normalize(f"pin_pore_data/{image_path}", 16)
+        image = load_and_normalize(f"pin_pore_data_sparse/{image_path}", 8)
         derivative_image = drv.full_sobel(image)
-        os.chdir("/lhome/clarkcs/pore_detection_16bit")
+        os.chdir("/lhome/clarkcs/pore_detection_sparse")
         if not os.path.exists(f"{data_name}"):
             os.mkdir(f"{data_name}")
         os.chdir(f"{data_name}")
         pore_candidates = try_all_thresholds(derivative_image, save_plots=True, ignore_largest_bbox=True)
-        os.chdir("/zhome/clarkcs/scripts/pcs_inner_outer_bboxs_16bit")
-        with open(f"{data_name}_pcs_16bit.json", "w") as file:
+        os.chdir("/zhome/clarkcs/scripts/pcs_inner_outer_bboxs_sparse")
+        with open(f"{data_name}_pcs.json", "w") as file:
             json.dump([(pc.max_threshold, pc.get_current_bboxs()) for pc in pore_candidates], file)
         os.chdir("/zhome/clarkcs/scripts")
 

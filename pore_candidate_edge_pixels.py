@@ -57,19 +57,18 @@ def extend_bbox(bbox, binary_bbox_roi, image_shape):
 if __name__ == "__main__":
     true_pore_thresh_bbox = {}
 
-    for image_path in os.listdir("pin_pore_data"):
+    for image_path in os.listdir("pin_pore_data_sparse"):
         print(image_path)
         data_name = image_path[:-4]
-        image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
-        with open(f"pcs_maxthresh_bbox/{data_name}_pcs.json", "r") as file:
+        image = load_and_normalize(f"pin_pore_data_sparse/{image_path}", 8)
+        with open(f"pcs_inner_outer_bboxs_sparse/{data_name}_pcs.json", "r") as file:
             pore_candidates = json.load(file)
 
         true_pore_thresh_bbox[data_name] = []
 
-        os.chdir("/zhome/clarkcs/Pictures/extending_bbox_check_edges_50-50_no_ticks")
-        # if not os.path.exists(f"{data_name}"):
-        #     os.mkdir(f"{data_name}")
+        os.chdir("/zhome/clarkcs/Pictures/extending_bbox_50-50_sparse")
         for i, (_, bbox) in enumerate(pore_candidates):
+            bbox = bbox["outer"]
             bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]
             bbox_thresh = find_half_thresh(bbox_roi)
             # bbox_thresh = (bbox_roi.max() - bbox_roi.min()) / 2 + bbox_roi.min()
@@ -92,16 +91,16 @@ if __name__ == "__main__":
                 ax2.set_xticks([]), ax2.set_yticks([])
                 largest_component = find_largest_connected_component(1 - new_binary_roi.astype(np.uint8))
                 if any_black_boundary(1 - largest_component):
-                    # plt.savefig(f"false_pores/{data_name}_pore_candidate_{i}.png")
+                    plt.savefig(f"false_pores/{data_name}_pore_candidate_{i}.png")
                     pass
                 else:
-                    # plt.savefig(f"true_pores/{data_name}_pore_candidate_{i}.png")
-                    true_pore_thresh_bbox[data_name].append((bbox_thresh, new_bbox))
+                    plt.savefig(f"true_pores/{data_name}_pore_candidate_{i}.png")
+                    # true_pore_thresh_bbox[data_name].append((bbox_thresh, new_bbox))
             else:
-                # plt.savefig(f"true_pores/{data_name}_pore_candidate_{i}.png")
-                true_pore_thresh_bbox[data_name].append((bbox_thresh, bbox))
+                plt.savefig(f"true_pores/{data_name}_pore_candidate_{i}.png")
+                # true_pore_thresh_bbox[data_name].append((bbox_thresh, bbox))
             plt.close(fig)
         os.chdir("/zhome/clarkcs/scripts")
 
-    with open("true_pore_candidate_50-50-thresh_plus_extbbox", "w") as file:
-        json.dump(true_pore_thresh_bbox, file)
+    # with open("true_pore_candidate_50-50-thresh_plus_extbbox", "w") as file:
+    #     json.dump(true_pore_thresh_bbox, file)
