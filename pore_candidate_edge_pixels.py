@@ -57,16 +57,16 @@ def extend_bbox(bbox, binary_bbox_roi, image_shape):
 if __name__ == "__main__":
     true_pore_thresh_bbox = {}
 
-    for image_path in os.listdir("pin_pore_data_sparse"):
+    for image_path in os.listdir("pin_pore_data"):
         print(image_path)
         data_name = image_path[:-4]
-        image = load_and_normalize(f"pin_pore_data_sparse/{image_path}", 8)
-        with open(f"pcs_inner_outer_bboxs_sparse/{data_name}_pcs.json", "r") as file:
+        image = load_and_normalize(f"pin_pore_data/{image_path}", 8)
+        with open(f"pcs_inner_outer_bboxs/{data_name}_pcs.json", "r") as file:
             pore_candidates = json.load(file)
 
         true_pore_thresh_bbox[data_name] = []
 
-        os.chdir("/zhome/clarkcs/Pictures/extending_bbox_50-50_sparse")
+        os.chdir("/zhome/clarkcs/Pictures/extending_bbox_check_edges_50-50-thresh_newplots")
         for i, (_, bbox) in enumerate(pore_candidates):
             bbox = bbox["outer"]
             bbox_roi = image[bbox[0]: bbox[2], bbox[1]: bbox[3]]

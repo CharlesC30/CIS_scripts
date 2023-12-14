@@ -23,4 +23,4 @@ if __name__ == "__main__":
         im = load_and_normalize(f"pin_pore_data/{data_name}.npy", 8)
         for i, (thresh, bbox) in enumerate(pores_thresh_bboxs[data_name]):
             plot_bbox_roi_threshed(im, bbox, thresh)
-            plt.savefig(f"/home/clarkcs/Pictures/pore_roi_thresh/{data_name}_{i}.png")
+            plt.savefig(f"/zhome/clarkcs/Pictures/pore_roi_thresh/{data_name}_{i}.png")
