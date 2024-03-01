@@ -5,12 +5,6 @@ import os
 import cv2
 from imgutils import load_and_normalize
 
-# how to do this
-# from pore_candidate_edge_pixels.py -> store extended bbox + 50-50 threshold
-# threhold the image at 50-50_thresh, then find the largect CC in the extended bbox
-# create a mask which is just the largest CC from the ext. bbox
-# multiply all masks together for each pin
-
 
 def find_largest_connected_component_in_subregion(image, subregion):
     # Extract the specified sub-region from the image
