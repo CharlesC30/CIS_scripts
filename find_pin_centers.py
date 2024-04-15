@@ -44,6 +44,19 @@ def read_dataid(filename):
 # filenames are the keys with pin center positions as the values
 pin_centers = {}
 
+
+def plot_pins_with_rois(ax, binary_pin_image):
+    ax.imshow(binary_pin_image, cmap="gray")
+    labels = cc3d.connected_components(binary_pin_image)
+    dusted_labels = cc3d.dust(labels, threshold=100)
+    regionprops = measure.regionprops(dusted_labels)
+    for rp in regionprops:
+        c = rp.centroid
+        rect = patches.Rectangle((c[1]-128, c[0]-128), 256, 256, edgecolor="r", facecolor="none")
+        ax.add_patch(rect)
+    return ax
+
+
 for filename in os.listdir():
     if ".hdf5" in filename:
         dataid = read_dataid(filename)
@@ -74,5 +87,6 @@ for filename in os.listdir():
                     ax = plt.gca()
                     ax.add_patch(rect)
                 plt.show()
+
 
 # print(pin_centers)

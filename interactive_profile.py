@@ -8,7 +8,7 @@ def main(image):
 
     # callback function for clicking on image
     def on_click(event):
-        # check that the zoom tool is not selected
+        # check that the zoom/pan tool is not selected
         if fig.canvas.toolbar.mode == "":
             if event.button == 1:  # check for LMB click
                 if len(clicked_points) < 2:
