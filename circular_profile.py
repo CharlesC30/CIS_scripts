@@ -31,9 +31,10 @@ def plot_circular_profile(image, center, radius, n):
     pts = make_circular_sampling_points(center, radius, n)
     ax1.plot(pts[0], pts[1], "r")
     ax2.plot(interpolate_on_image(IMAGE, pts))
-    fig.suptitle(f"radius = {radius * 2.54} μm")
+    fig.suptitle(f"radius = {radius * 1.72} μm")
     plt.show()
 
+# plot_circular_profile(IMAGE, CENTER, 200, N)
 for radius in range(0, 300+1, 25):
     plot_circular_profile(IMAGE, CENTER, radius, N)
 
