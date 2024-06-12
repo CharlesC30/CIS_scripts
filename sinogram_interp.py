@@ -13,9 +13,9 @@ def interpolate_sinogram(input_sinogram, n_angles):
 
 
 if __name__ == "__main__":
-    TEST_PATH = "/lhome/clarkcs/aRTist_simulations/aRTist_train_data/sinograms/train_full_sinogram_010.npy"
+    TEST_PATH = "/lhome/clarkcs/aRTist_simulations/aRTist_train_data/sinograms/train_full_sinogram_000.npy"
     sinogram = np.squeeze(np.load(TEST_PATH))
-    sparse_sinogram = sinogram[::10, :]
+    sparse_sinogram = sinogram[::4, :]
     interp_sinogram = interpolate_sinogram(sparse_sinogram, 1000)
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3)

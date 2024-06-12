@@ -89,25 +89,25 @@ import matplotlib.pyplot as plt
 def get_sinogram(filepath: Path) -> np.ndarray:
     with open(filepath, "rb") as f:
         header_data = f.read(512)
-        header = BamHeader(*bamHeaderStruct.unpack(header_data))
+    header = BamHeader(*bamHeaderStruct.unpack(header_data))
 
-        ty = header.Filename[10:11]
-        if ty == b'c':
-            dtype = np.uint8
-        elif ty == b's':
-            dtype = np.uint16
-        elif ty == b'i':
-            dtype = np.uint32
-        elif ty == b'r':
-            dtype = np.float32
-        else:
-            raise ValueError('Got unknown data type {!r}'.format(ty))
+    ty = header.Filename[10:11]
+    if ty == b'c':
+        dtype = np.uint8
+    elif ty == b's':
+        dtype = np.uint16
+    elif ty == b'i':
+        dtype = np.uint32
+    elif ty == b'r':
+        dtype = np.float32
+    else:
+        raise ValueError('Got unknown data type {!r}'.format(ty))
 
-        imageCount = header.AngularSteps
-        imageShape = (header.Columns, header.Rows // imageCount)
-        rowSize = header.Columns * header.BytesPerPixel
-        offset = (512 + rowSize - 1) // rowSize * rowSize
-        dataSize = imageShape[0] * imageShape[1] * header.BytesPerPixel
+    imageCount = header.AngularSteps
+    imageShape = (header.Columns, header.Rows // imageCount)
+    rowSize = header.Columns * header.BytesPerPixel
+    offset = (512 + rowSize - 1) // rowSize * rowSize
+    dataSize = imageShape[0] * imageShape[1] * header.BytesPerPixel
 
     sinogram = np.empty(shape=(imageCount, imageShape[0], imageShape[1]), dtype=dtype)
 
