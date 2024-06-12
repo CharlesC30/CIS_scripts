@@ -85,7 +85,6 @@ import numpy as np
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-DATA_PATH = Path("/lhome/clarkcs/aRTist_simulations/aRTist_train_data/train_full_999.dd")
 
 def get_sinogram(filepath: Path) -> np.ndarray:
     with open(filepath, "rb") as f:
@@ -110,8 +109,9 @@ def get_sinogram(filepath: Path) -> np.ndarray:
         offset = (512 + rowSize - 1) // rowSize * rowSize
         dataSize = imageShape[0] * imageShape[1] * header.BytesPerPixel
 
-        sinogram = np.empty(shape=(imageCount, imageShape[0], imageShape[1]), dtype=dtype)
-    with open(DATA_PATH, "rb") as f:
+    sinogram = np.empty(shape=(imageCount, imageShape[0], imageShape[1]), dtype=dtype)
+
+    with open(filepath, "rb") as f:
         for i in range(imageCount):
             f.seek(offset + dataSize * i)
             projection_data = f.read(dataSize)
